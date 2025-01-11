@@ -1,25 +1,29 @@
+// Este archivo implementa utilidades para buscar y manejar resolutores DNS a partir de datos de entrada.
+
 package main
 
 import (
 	"bufio"
+	"bytes"
 	"encoding/binary"
 	"fmt"
-	"github.com/korylprince/ipnetgen"
 	"math"
 	"net"
 	"os"
+	"os/exec"
 	"strconv"
 	"strings"
-	"github.com/miekg/dns"
-	"bytes"
-	"os/exec"
 	"sync"
 	"time"
+
+	"github.com/korylprince/ipnetgen"
+	"github.com/miekg/dns"
 	"github.com/oschwald/geoip2-golang"
 )
 
 var giasn *geoip2.Reader
 
+// ip2int convierte una dirección IP en su representación numérica (uint32).
 func ip2int(ip net.IP) uint32 {
 	if len(ip) == 16 {
 		return binary.BigEndian.Uint32(ip[12:16])
@@ -27,12 +31,14 @@ func ip2int(ip net.IP) uint32 {
 	return binary.BigEndian.Uint32(ip)
 }
 
+// int2ip convierte un número uint32 en su representación de dirección IP.
 func int2ip(nn uint32) net.IP {
 	ip := make(net.IP, 4)
 	binary.BigEndian.PutUint32(ip, nn)
 	return ip
 }
 
+// readLines lee las líneas de un archivo y las retorna como un slice de strings.
 func readLines(path string) ([]string, error) {
 	file, err := os.Open(path)
 	if err != nil {
@@ -51,6 +57,7 @@ func readLines(path string) ([]string, error) {
 var TotalTime int
 var mutexTT *sync.Mutex
 
+// main coordina la lectura de datos, inicialización de rutinas y búsqueda de resolutores DNS.
 func main() {
 	//inputFile := "CLparsed01082017.txt"
 	inputFile := "port-53_2017-07-12.csv"
@@ -115,6 +122,8 @@ func main() {
 	TotalTime = (int)(time.Since(t).Nanoseconds())
 
 }
+
+// getCIDR calcula la notación CIDR basada en la IP y el conteo provistos.
 func getCIDR(line string) string {
 	l := strings.Split(line, ",")
 	ips := ""
@@ -147,6 +156,7 @@ func getCIDR(line string) string {
 	return cidr
 }
 
+// getGeoIpAsnDB abre la base de datos GeoIP ASN
 func getGeoIpAsnDB() (*geoip2.Reader, error) {
 	file := "/usr/share/GeoIP/GeoLite2-ASN.mmdb"
 	gi, err := geoip2.Open(file)
@@ -157,6 +167,7 @@ func getGeoIpAsnDB() (*geoip2.Reader, error) {
 	return gi, err
 }
 
+// lookForResolver busca resolutores DNS en la IP provista.
 func lookForResolver(ip string) {
 	//random := strconv.FormatInt(rand.Int63(),10)
 	line := "www.hola.com"
@@ -221,6 +232,7 @@ func lookForResolver(ip string) {
 	}
 }
 
+// getName obtiene información sobre la IP mediante consultas WHOIS.
 func getName(ip string) string {
 	//addr,err :=dns.ReverseAddr(ip)
 	//if(err!=nil) {
@@ -314,6 +326,7 @@ func getName(ip string) string {
 	*/
 }
 
+// RunWHOIS ejecuta el comando WHOIS para obtener información de una dirección IP.
 func RunWHOIS(ipAddr string) bytes.Buffer {
 
 	// Parse IP to make sure it is valid

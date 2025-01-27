@@ -126,7 +126,7 @@ func initjsonsFolder() {
 /*Dispersion*/
 func saveDispersion(runId int, ts string, db *sql.DB) {
 	saveCountNSPerDomain(runId, ts, db)
-	saveCountASNPerDomain(runId, ts, db)
+	// saveCountASNPerDomain(runId, ts, db)
 	saveCountCountryPerDomain(runId, ts, db)
 	saveCountNSCountryASNPerDomain(runId, ts, db)
 	saveCountNSIPv4IPv6(runId, ts, db)

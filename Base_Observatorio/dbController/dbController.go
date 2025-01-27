@@ -73,9 +73,9 @@ func CreateTables(db *sql.DB, drop bool) {
 		fmt.Println("OpenConnections", db.Stats())
 		panic(err)
 	}
-	// Creamos tabla para almacenar metricas de disponibilidad por transporte y dirección
-	DropTable("availability_metrics", db, drop)
-	_, err = db.Exec("CREATE TABLE IF NOT EXISTS availability_metrics ( id SERIAL PRIMARY KEY, run_id integer REFERENCES runs(id), address VARCHAR(10), transport VARCHAR(10), duration FLOAT, correct bool, success_count INTEGER, total_count INTEGER, availability FLOAT)")
+	// Creamos tabla para almacenar metricas de disponibilidad y latencia por transporte y dirección
+	DropTable("availability_latency_metrics", db, drop)
+	_, err = db.Exec("CREATE TABLE IF NOT EXISTS availability_latency_metrics ( id SERIAL PRIMARY KEY, run_id integer REFERENCES runs(id), address VARCHAR(10), transport VARCHAR(10), duration FLOAT, correct bool, success_count INTEGER, total_count INTEGER, availability FLOAT, latency FLOAT)")
 	if err != nil {
 		fmt.Println("OpenConnections", db.Stats())
 		panic(err)
@@ -429,6 +429,12 @@ func CountDomainsWithCountNSIPExclusive(runId int, db *sql.DB) (*sql.Rows, error
 	return rows, err
 }
 
+// Cuenta cuantos tiempos son menores y mayores a 250ms UDP y 500ms TCP
+//
+//	func CountResponseTime(runId int, db *sql.DB) (*sql.Rows. error) {
+//		rows, err := db.Query("SELECT address, transport, duration, latency ")
+//	}
+//
 // Cuenta respuestas exitosas y timeouts
 func CountAvailabilityResults(runId int, db *sql.DB) (*sql.Rows, error) {
 	rows, err := db.Query("SELECT address, transport, SUM(CASE WHEN correct THEN 1 ELSE 0 END) AS correct_count, SUM(CASE WHEN NOT correct THEN 1 ELSE 0 END) AS timeout_count FROM availability_metrics WHERE run_id = $1 GROUP BY address, transport ORDER BY address, transport", runId)

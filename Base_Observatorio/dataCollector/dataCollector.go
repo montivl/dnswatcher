@@ -250,7 +250,7 @@ func getDomainsNameservers(domainName string) (nameservers []dns.RR) {
 	}
 }
 
-func obtainNsIpv4Info(ip net.IP, domainName string, nameserverId int, runId int, db *sql.DB) (nameserverIpString string) {
+func obtainNsIpv4Info(ip net.IP, nameserverId int, runId int, db *sql.DB) (nameserverIpString string) {
 	nameserverIpString = net.IP.String(ip)
 	dontProbe := true
 	asn := geoIPUtils.GetIPASN(nameserverIpString, geoipAsnDb)
@@ -737,7 +737,7 @@ func collectSingleDomainInfo(domainName string, runId int, db *sql.DB) {
 						manageError(strings.Join([]string{"getANS: ", domainName, ns.Ns, err.Error()}, ""))
 					} else { //If NS is ok then execute more tests
 						for _, ip := range ipv4 {
-							nameserverIpString := obtainNsIpv4Info(ip, domainName, nameserverId, runId, db)
+							nameserverIpString := obtainNsIpv4Info(ip, nameserverId, runId, db)
 
 							if nameserverIpString != "" {
 								domainNameServers = append(domainNameServers, nameserverIpString)
@@ -846,6 +846,11 @@ func collectAvailabilityData(runId int, db *sql.DB) {
 			*/
 		}
 	}
+}
+
+// busca datos en availability_metrics y verifica si cumplen o no tiempo menor a 250ms UDP y 500ms TCP
+func collectLatencyResults(runId int, db *sql.DB) {
+
 }
 
 // Manda la consulta SOA
